@@ -94,6 +94,32 @@ int PasswordInput(int cfd, char str[2000]) {
 	return 1;
 }
 
+int GetMessageCounts(int cfd) {
+	int i;
+	char path[2000];
+	sprintf(path, "Users/%s",username);
+	FILE *fp = fopen(path, "r");
+
+	int nn = -1; //since one line is for the password
+	char buf[20000];
+   	while(fgets(buf, 20000, fp) != NULL) {
+		nn++;
+	}
+
+	int mm = 0;
+	fp = fopen(path, "r");
+	fgets(buf, 20000, fp); //ignore the first line as it stores the password
+
+	while(fgets(buf, 20000, fp) != NULL) {
+		mm += strlen(buf);
+	}
+
+	sprintf(buf, "+OK, %d %d",nn,mm);
+	write(cfd, buf, 2000);
+	return 1;
+}
+
+
 void parse(int cfd, char str[2000]) {
 	if(strncmp("USER", str, 4) == 0) {
 		UserNameInput(cfd, str);
@@ -104,6 +130,7 @@ void parse(int cfd, char str[2000]) {
 	}
 
 	else if(strncmp("STAT", str, 4)==0) {
+		GetMessageCounts(cfd);
 	}
 
 }
