@@ -1,0 +1,3 @@
+gcc Dseerver.c -o server -pthread
+gcc Dclient.c -o client
+
