@@ -41,6 +41,17 @@ int UserNameInput(int cfd, char str[2000]) {
 	}
 	username[j] = '\0';
 
+	char path[2000];
+	sprintf(path, "Users/%s",username);
+	FILE *fp = fopen(path, "r");
+	
+	if(fp == NULL) {
+		sprintf(str, "Unknown Username\n");
+		write(cfd, str, 2000);
+		return -1;
+	}
+
+
 	sprintf(str, "+OK Hello %s, now send PASS",username);
 	state = 2;
 
@@ -78,6 +89,10 @@ void parse(int cfd, char str[2000]) {
 	else if(strncmp("PASS", str, 4)==0) {
 		PasswordInput(cfd, str);
 	}
+
+	else if(strncmp("STAT", str, 4)==0) {
+	}
+
 }
 
 void *ServerPOP3(void *args) {
