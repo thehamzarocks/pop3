@@ -21,11 +21,11 @@
 }*/
 
 int state;
+char username[2000];
 
 
 int UserNameInput(int cfd, char str[2000]) {
 	int i;
-	char username[2000];
 
 	//read(cfd, str, 2000);
 
@@ -74,6 +74,19 @@ int PasswordInput(int cfd, char str[2000]) {
 		pass[j++] = str[i];
 	}
 	pass[j] = '\0';
+
+	char path[2000];
+	sprintf(path, "Users/%s",username);
+	FILE *fp = fopen(path, "r");
+
+	char actualpassword[2000];
+	fgets(actualpassword, 2000, fp);
+	if(strncmp(actualpassword, pass,strlen(pass))!=0) {
+		sprintf(str, "Wrong password");
+		write(cfd, str, 2000);
+		return -1;
+	}
+
 
 	sprintf(str, "+OK, Welcome and proceed");
 	state = 3;
