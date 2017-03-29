@@ -282,6 +282,20 @@ int MarkForDeletion(int cfd, char str[2000], char username[2000]) {
 	}
 }
 
+int NOOP(int cfd) {
+	char str[2000];
+	if(state != 3) {
+		sprintf(str, "Not in the appropriate state");
+		write(cfd, str, 2000);
+		return -1;
+	}
+
+	sprintf(str, "+OK");
+	write(cfd, str, 2000);
+	return 1;
+}
+
+
 int Quit(int cfd, char str[2000], char username[2000]) {
 	
 	if(state == 3) {
@@ -337,6 +351,9 @@ void parse(int cfd, char str[2000], char username[2000]) {
 	}
 	else if(strncmp("DELE", str, 4)==0) {
 		MarkForDeletion(cfd, str, username);
+	}
+	else if(strncmp("NOOP", str, 4)==0) {
+		NOOP(cfd);
 	}
 	else if(strncmp("QUIT", str, 4)==0) {
 		Quit(cfd, str, username);
