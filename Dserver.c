@@ -188,8 +188,53 @@ int RetrieveMessage(int cfd, char str[2000], char username[2000]) {
 	return -1;
 }
 
+int MarkForDeletion(int cfd, char str[2000], char username[2000]) {
+	int i;
+
+	char path[2000];
+	sprintf(path, "Users/%s",username);
+	FILE *fp = fopen(path, "r");
+	FILE *fout = fopen("Users/temp", "w");
+	
+	char msgid[2000];
+	int j = 0;
+	for(i=5; str[i]!='\0'; i++) {
+		msgid[j++] = str[i];
+	}
+	msgid[j] = '\0';
+
+	char buf[2000];
+	fgets(buf, 2000, fp);
+	fprintf(fout, "%s",buf);
+	int found = 0;
+
+	char msg[2000];
+	while(fgets(buf, 2000, fp) != NULL) {
+		if(strncmp(buf, msgid, strlen(msgid))==0) { //okay to compare only up to length of msgid as messages are in ascending order of ids
+			found = 1;
+			sprintf(msg, "+OK Message Deleted");
+		}
+		else { //copy everything but the matched message
+			fprintf(fout, "%s",buf);
+		}
+	}
 
 
+	fclose(fout);
+	remove(path);
+	rename("Users/temp",path);
+	if(found == 1) {
+		write(cfd, msg, 2000);
+		return 1;
+	}
+	else {
+		sprintf(msg, "-ERR Message Not Found");
+		write(cfd, msg, 2000);
+		return 1;
+	}
+}
+
+	
 
 void parse(int cfd, char str[2000], char username[2000]) {
 	if(strncmp("USER", str, 4) == 0) {
@@ -210,6 +255,7 @@ void parse(int cfd, char str[2000], char username[2000]) {
 		RetrieveMessage(cfd, str, username);
 	}
 	else if(strncmp("DELE", str, 4)==0) {
+		MarkForDeletion(cfd, str, username);
 	}
 
 
