@@ -32,6 +32,9 @@ int main()
 	  write(cfd, str_clnt, 2000);
 	  read(cfd, str_ser, 2000);
 	  printf("%s\n",str_ser);
+	  if(strncmp(str_ser, "+OK Signing Off", strlen("+OK Signing Off"))==0) {
+		  break;
+	  }
   }
   close(cfd);
  }

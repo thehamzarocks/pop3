@@ -160,6 +160,9 @@ int ListMessages(int cfd, char str[20000], char username[2000]) {
 
 	while(fgets(buf, 20000, fp) != NULL) {
 		int j = 0;
+		if(buf[0]=='/') {
+			continue;
+		}
 		for(i=0;buf[i]!='.';i++) {
 			msgid[j++] = buf[i];
 		}
@@ -200,6 +203,11 @@ int RetrieveMessage(int cfd, char str[2000], char username[2000]) {
 	int found = 0;
 	while(fgets(buf,2000,fp) != NULL) {
 		if(strncmp(msgid, buf, strlen(msgid))==0) { //matching message
+			if(buf[0]=='/') {
+				sprintf(msg, "-ERR Message Marked for Deletion");
+				found = 2;
+				break;
+			}
 			sprintf(msg, "+OK Message Found\n%s",buf);
 			found = 1;
 			break;
@@ -213,9 +221,11 @@ int RetrieveMessage(int cfd, char str[2000], char username[2000]) {
 		found = 0;
 		return 1;
 	}
-	sprintf(buf, "-ERR Message Not Found");
-	write(cfd, buf, 2000);
-	return -1;
+	else if(found == 0) {
+		sprintf(buf, "-ERR Message Not Found");
+		write(cfd, buf, 2000);
+		return -1;
+	}
 }
 
 int MarkForDeletion(int cfd, char str[2000], char username[2000]) {
@@ -273,29 +283,34 @@ int MarkForDeletion(int cfd, char str[2000], char username[2000]) {
 }
 
 int Quit(int cfd, char str[2000], char username[2000]) {
-	char path[2000];
-	sprintf(path, "Users/%s",username);
-	FILE *fp = fopen(path, "r");
+	
+	if(state == 3) {
+		char path[2000];
+		sprintf(path, "Users/%s",username);
+		FILE *fp = fopen(path, "r");
 
-	FILE *fout = fopen("Users/temp", "w");
-
-	char buf[2000];
-	while(fgets(buf, 2000, fp) != NULL) {
-		if(buf[0]=='/') {
-			continue;
+		FILE *fout = fopen("Users/temp", "w");
+	
+		char buf[2000];
+		while(fgets(buf, 2000, fp) != NULL) {
+			if(buf[0]=='/') {
+				continue;
+			}
+			fprintf(fout,buf,2000);
 		}
-		fprintf(fout,buf,2000);
+		
+		fclose(fout);
+		remove(path);
+		rename("Users/temp",path);
 	}
 
-	fclose(fout);
-	remove(path);
-	rename("Users/temp",path);
 
 	lock = 1;
 
 	char msg[2000];
 	sprintf(msg, "+OK Signing Off");
 	write(cfd, msg, 2000);
+	close(cfd);
 	return 1;
 }
 
@@ -325,6 +340,10 @@ void parse(int cfd, char str[2000], char username[2000]) {
 	}
 	else if(strncmp("QUIT", str, 4)==0) {
 		Quit(cfd, str, username);
+	}
+	else {
+		sprintf(str, "Unknown Command");
+		write(cfd, str, 2000);
 	}
 
 

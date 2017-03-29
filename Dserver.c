@@ -283,29 +283,34 @@ int MarkForDeletion(int cfd, char str[2000], char username[2000]) {
 }
 
 int Quit(int cfd, char str[2000], char username[2000]) {
-	char path[2000];
-	sprintf(path, "Users/%s",username);
-	FILE *fp = fopen(path, "r");
+	
+	if(state == 3) {
+		char path[2000];
+		sprintf(path, "Users/%s",username);
+		FILE *fp = fopen(path, "r");
 
-	FILE *fout = fopen("Users/temp", "w");
-
-	char buf[2000];
-	while(fgets(buf, 2000, fp) != NULL) {
-		if(buf[0]=='/') {
-			continue;
+		FILE *fout = fopen("Users/temp", "w");
+	
+		char buf[2000];
+		while(fgets(buf, 2000, fp) != NULL) {
+			if(buf[0]=='/') {
+				continue;
+			}
+			fprintf(fout,buf,2000);
 		}
-		fprintf(fout,buf,2000);
+		
+		fclose(fout);
+		remove(path);
+		rename("Users/temp",path);
 	}
 
-	fclose(fout);
-	remove(path);
-	rename("Users/temp",path);
 
 	lock = 1;
 
 	char msg[2000];
 	sprintf(msg, "+OK Signing Off");
 	write(cfd, msg, 2000);
+	close(cfd);
 	return 1;
 }
 
@@ -335,6 +340,10 @@ void parse(int cfd, char str[2000], char username[2000]) {
 	}
 	else if(strncmp("QUIT", str, 4)==0) {
 		Quit(cfd, str, username);
+	}
+	else {
+		sprintf(str, "Unknown Command");
+		write(cfd, str, 2000);
 	}
 
 
