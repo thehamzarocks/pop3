@@ -14,7 +14,7 @@ int main()
  char str_clnt[2000],str_ser[2000];
  
  sock_var.sin_addr.s_addr=inet_addr("127.0.0.1");
- sock_var.sin_port=3000;
+ sock_var.sin_port=110;
  sock_var.sin_family=AF_INET;
  
  if(connect(cfd,(struct sockaddr*)&sock_var,sizeof(sock_var))>=0)

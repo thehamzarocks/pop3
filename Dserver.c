@@ -455,7 +455,7 @@ int main()
  pthread_t t[20];
  
  sock_var.sin_addr.s_addr=inet_addr("127.0.0.1");
- sock_var.sin_port=3000;
+ sock_var.sin_port=110;
  sock_var.sin_family=AF_INET;
  if(bind(serverFileDiscriptor,(struct sockaddr*)&sock_var,sizeof(sock_var))>=0)
  {

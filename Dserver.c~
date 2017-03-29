@@ -314,7 +314,9 @@ int Undelete(int cfd, char str[2000], char username[2000]) {
 	char buf[2000];
 	while(fgets(buf, 2000, fp) != NULL) {
 		if(buf[0] == '/') {
-			buf++; //ignore the first character
+			for(i=0;i<strlen(buf)-1;i++) {
+				buf[i] = buf[i+1];
+			}
 		}
 		fprintf(fout, "%s",buf);
 	}
