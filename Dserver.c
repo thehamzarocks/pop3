@@ -269,6 +269,7 @@ int MarkForDeletion(int cfd, char str[2000], char username[2000]) {
 
 
 	fclose(fout);
+	fclose(fp);
 	remove(path);
 	rename("Users/temp",path);
 	if(found == 1) {
@@ -291,6 +292,41 @@ int NOOP(int cfd) {
 	}
 
 	sprintf(str, "+OK");
+	write(cfd, str, 2000);
+	return 1;
+}
+
+int Undelete(int cfd, char str[2000], char username[2000]) {
+	int i;
+
+	if(state != 3) {
+		sprintf(str, "Not in the appropriate state");
+		write(cfd, str, 2000);
+		return -1;
+	}
+
+	char path[2000];
+	sprintf(path, "Users/%s",username);
+	FILE *fp = fopen(path, "r");
+
+	FILE *fout = fopen("Users/temp", "w");
+
+	char buf[2000];
+	while(fgets(buf, 2000, fp) != NULL) {
+		if(buf[0] == '/') {
+			for(i=0;i<strlen(buf)-1;i++) {
+				buf[i] = buf[i+1];
+			}
+		}
+		fprintf(fout, "%s",buf);
+	}
+
+	fclose(fout);
+	fclose(fp);
+	remove(path);
+	rename("Users/temp",path);
+
+	sprintf(str, "+OK Messages Undeleted");
 	write(cfd, str, 2000);
 	return 1;
 }
@@ -354,6 +390,9 @@ void parse(int cfd, char str[2000], char username[2000]) {
 	}
 	else if(strncmp("NOOP", str, 4)==0) {
 		NOOP(cfd);
+	}
+	else if(strncmp("RSET" ,str, 4)==0) {
+		Undelete(cfd, str, username);
 	}
 	else if(strncmp("QUIT", str, 4)==0) {
 		Quit(cfd, str, username);
