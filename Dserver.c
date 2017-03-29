@@ -147,6 +147,45 @@ int ListMessages(int cfd, char str[20000]) {
 	return 1;
 }
 
+int RetrieveMessage(int cfd, char str[2000]) {
+	int i;
+	char path[2000];
+	sprintf(path, "Users/%s",username);
+	FILE *fp = fopen(path, "r");
+
+	char msgid[2000];
+	int j = 0;
+	for(i=5;str[i]!='\0';i++) { //retrieve the message id from the string
+		msgid[j++] = str[i];
+	}
+	msgid[j] = '\0';
+
+	char buf[2000];
+	fgets(buf, 2000, fp);
+
+	char msg[2000];
+	int found = 0;
+	while(fgets(buf,2000,fp) != NULL) {
+		if(strncmp(msgid, buf, strlen(msgid))==0) { //matching message
+			sprintf(msg, "+OK Message Found\n%s",buf);
+			found = 1;
+			break;
+			//write(cfd,msg,20000);
+			//return 1;
+		}
+	}
+
+	if(found == 1) {
+		write(cfd, msg, 2000);
+		found = 0;
+		return 1;
+	}
+	sprintf(buf, "-ERR Message Not Found");
+	write(cfd, buf, 2000);
+	return -1;
+}
+
+
 
 
 void parse(int cfd, char str[2000]) {
@@ -164,6 +203,10 @@ void parse(int cfd, char str[2000]) {
 	else if(strncmp("LIST", str, 4)==0) {
 		ListMessages(cfd,str);
 	}
+	else if(strncmp("RETR", str, 4)==0) {
+		RetrieveMessage(cfd, str);
+	}
+
 
 }
 
