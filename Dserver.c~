@@ -24,6 +24,8 @@ int state;
 char marked[100][2000];
 int nummarked;
 
+int lock = 1;
+
 
 int UserNameInput(int cfd, char str[2000], char username[2000]) {
 	int i;
@@ -207,7 +209,7 @@ void parse(int cfd, char str[2000], char username[2000]) {
 	else if(strncmp("RETR", str, 4)==0) {
 		RetrieveMessage(cfd, str, username);
 	}
-	else if(strncmp("DELE", str, 4, username)==0) {
+	else if(strncmp("DELE", str, 4)==0) {
 	}
 
 
@@ -219,8 +221,16 @@ void *ServerPOP3(void *args) {
 	char username[2000];
 	int i;
 
-	strcpy(str, "+OK, connected\n");
-	write(cfd, str, 2000);
+	if(lock == 1) {
+		lock = 0;
+		strcpy(str, "+OK, connected\n");
+		write(cfd, str, 2000);
+	}
+	else {
+		strcpy(str, "-ERR Unable to connect\n");
+		write(cfd, str, 2000);
+		close(cfd);
+	}
 	
 	/*if(UserNameInput(cfd, str) == 1) { //accepted user
 		state = 2; 
