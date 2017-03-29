@@ -21,10 +21,11 @@
 }*/
 
 int state;
-char username[2000];
+char marked[100][2000];
+int nummarked;
 
 
-int UserNameInput(int cfd, char str[2000]) {
+int UserNameInput(int cfd, char str[2000], char username[2000]) {
 	int i;
 
 	//read(cfd, str, 2000);
@@ -60,7 +61,7 @@ int UserNameInput(int cfd, char str[2000]) {
 	
 }
 
-int PasswordInput(int cfd, char str[2000]) {
+int PasswordInput(int cfd, char str[2000], char username[2000]) {
 	if(state != 2) {
 		sprintf(str, "Not in the right state");
 		write(cfd, str, 2000);
@@ -94,7 +95,7 @@ int PasswordInput(int cfd, char str[2000]) {
 	return 1;
 }
 
-int GetMessageCounts(int cfd) {
+int GetMessageCounts(int cfd, char username[2000]) {
 	int i;
 	char path[2000];
 	sprintf(path, "Users/%s",username);
@@ -119,7 +120,7 @@ int GetMessageCounts(int cfd) {
 	return 1;
 }
 
-int ListMessages(int cfd, char str[20000]) {
+int ListMessages(int cfd, char str[20000], char username[2000]) {
 	int i;
 	char path[2000];
 	char buf[20000];
@@ -147,7 +148,7 @@ int ListMessages(int cfd, char str[20000]) {
 	return 1;
 }
 
-int RetrieveMessage(int cfd, char str[2000]) {
+int RetrieveMessage(int cfd, char str[2000], char username[2000]) {
 	int i;
 	char path[2000];
 	sprintf(path, "Users/%s",username);
@@ -188,23 +189,25 @@ int RetrieveMessage(int cfd, char str[2000]) {
 
 
 
-void parse(int cfd, char str[2000]) {
+void parse(int cfd, char str[2000], char username[2000]) {
 	if(strncmp("USER", str, 4) == 0) {
-		UserNameInput(cfd, str);
+		UserNameInput(cfd, str, username);
 	}
 
 	else if(strncmp("PASS", str, 4)==0) {
-		PasswordInput(cfd, str);
+		PasswordInput(cfd, str, username);
 	}
 
 	else if(strncmp("STAT", str, 4)==0) {
-		GetMessageCounts(cfd);
+		GetMessageCounts(cfd, username);
 	}
 	else if(strncmp("LIST", str, 4)==0) {
-		ListMessages(cfd,str);
+		ListMessages(cfd,str, username);
 	}
 	else if(strncmp("RETR", str, 4)==0) {
-		RetrieveMessage(cfd, str);
+		RetrieveMessage(cfd, str, username);
+	}
+	else if(strncmp("DELE", str, 4)==0) {
 	}
 
 
@@ -213,6 +216,7 @@ void parse(int cfd, char str[2000]) {
 void *ServerPOP3(void *args) {
 	int cfd = (int)args;
 	char str[2000];
+	char username[2000];
 	int i;
 
 	strcpy(str, "+OK, connected\n");
@@ -223,10 +227,11 @@ void *ServerPOP3(void *args) {
 	}*/
 
 	state = 1;
+	nummarked = 0;
 
 	while(1) {
 		read(cfd, str, 2000);
-		parse(cfd, str);
+		parse(cfd, str, username);
 	}
 
 
