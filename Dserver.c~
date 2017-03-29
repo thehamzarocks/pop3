@@ -107,10 +107,10 @@ int GetMessageCounts(int cfd) {
 	}
 
 	int mm = 0;
-	*fp = fopen(path, "r");
+	fp = fopen(path, "r");
 	fgets(buf, 20000, fp); //ignore the first line as it stores the password
 
-	while(fgets(buf, 20000, fp) != NULL) {
+	while(fgets(buf, 20000, fp) != NULL) { //small problem here
 		mm += strlen(buf);
 	}
 
@@ -118,6 +118,35 @@ int GetMessageCounts(int cfd) {
 	write(cfd, buf, 2000);
 	return 1;
 }
+
+int ListMessages(int cfd, char str[20000]) {
+	int i;
+	char path[2000];
+	char buf[20000];
+	sprintf(path, "Users/%s",username);
+	FILE *fp = fopen(path, "r");
+
+	fgets(buf, 20000, fp);
+
+	char msglist[20000];
+	sprintf(msglist, "+OK");
+
+	char msgid[2000];
+
+	while(fgets(buf, 20000, fp) != NULL) {
+		int j = 0;
+		for(i=0;buf[i]!='.';i++) {
+			msgid[j++] = buf[i];
+		}
+		msgid[j] = '\0';
+		sprintf(msglist, "%s\n%s",msglist,msgid);
+	}
+
+	sprintf(msglist, "%s\n.",msglist);
+	write(cfd, buf, 2000);
+	return 1;
+}
+
 
 
 void parse(int cfd, char str[2000]) {
@@ -131,6 +160,9 @@ void parse(int cfd, char str[2000]) {
 
 	else if(strncmp("STAT", str, 4)==0) {
 		GetMessageCounts(cfd);
+	}
+	else if(strncmp("LIST", str, 4)==0) {
+		ListMessages(cfd,str);
 	}
 
 }
