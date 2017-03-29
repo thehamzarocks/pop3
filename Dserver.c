@@ -114,6 +114,10 @@ int GetMessageCounts(int cfd, char username[2000]) {
 	int nn = -1; //since one line is for the password
 	char buf[20000];
    	while(fgets(buf, 20000, fp) != NULL) {
+		if(buf[0]=='/') { //marked as deleted, ignore
+			continue;
+		}
+
 		nn++;
 	}
 
@@ -122,6 +126,9 @@ int GetMessageCounts(int cfd, char username[2000]) {
 	fgets(buf, 20000, fp); //ignore the first line as it stores the password
 
 	while(fgets(buf, 20000, fp) != NULL) { //small problem here
+		if(buf[0]=='/') {
+			continue;
+		}
 		mm += strlen(buf);
 	}
 
@@ -153,6 +160,9 @@ int ListMessages(int cfd, char str[20000], char username[2000]) {
 
 	while(fgets(buf, 20000, fp) != NULL) {
 		int j = 0;
+		if(buf[0]=='/') {
+			continue;
+		}
 		for(i=0;buf[i]!='.';i++) {
 			msgid[j++] = buf[i];
 		}
@@ -193,6 +203,11 @@ int RetrieveMessage(int cfd, char str[2000], char username[2000]) {
 	int found = 0;
 	while(fgets(buf,2000,fp) != NULL) {
 		if(strncmp(msgid, buf, strlen(msgid))==0) { //matching message
+			if(buf[0]=='/') {
+				sprintf(msg, "-ERR Message Marked for Deletion");
+				found = 2;
+				break;
+			}
 			sprintf(msg, "+OK Message Found\n%s",buf);
 			found = 1;
 			break;
@@ -206,9 +221,11 @@ int RetrieveMessage(int cfd, char str[2000], char username[2000]) {
 		found = 0;
 		return 1;
 	}
-	sprintf(buf, "-ERR Message Not Found");
-	write(cfd, buf, 2000);
-	return -1;
+	else if(found == 0) {
+		sprintf(buf, "-ERR Message Not Found");
+		write(cfd, buf, 2000);
+		return -1;
+	}
 }
 
 int MarkForDeletion(int cfd, char str[2000], char username[2000]) {

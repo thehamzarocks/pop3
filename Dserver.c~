@@ -114,6 +114,10 @@ int GetMessageCounts(int cfd, char username[2000]) {
 	int nn = -1; //since one line is for the password
 	char buf[20000];
    	while(fgets(buf, 20000, fp) != NULL) {
+		if(buf[0]=='/') { //marked as deleted, ignore
+			continue;
+		}
+
 		nn++;
 	}
 
@@ -122,6 +126,9 @@ int GetMessageCounts(int cfd, char username[2000]) {
 	fgets(buf, 20000, fp); //ignore the first line as it stores the password
 
 	while(fgets(buf, 20000, fp) != NULL) { //small problem here
+		if(buf[0]=='/') {
+			continue;
+		}
 		mm += strlen(buf);
 	}
 
@@ -273,7 +280,7 @@ int Quit(int cfd, char str[2000], char username[2000]) {
 	FILE *fout = fopen("Users/temp", "w");
 
 	char buf[2000];
-	while(fgets(buf, fp, 2000) != NULL) {
+	while(fgets(buf, 2000, fp) != NULL) {
 		if(buf[0]=='/') {
 			continue;
 		}
